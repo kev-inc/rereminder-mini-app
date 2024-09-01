@@ -3,8 +3,8 @@ export interface Task {
   description: string;
   chatId: number;
   userId: number;
-  reminderDate: number;
-  repeatInterval: string;
+  reminderDate?: number;
+  repeatInterval?: string;
   status: string;
 }
 

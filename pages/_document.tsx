@@ -7,6 +7,7 @@ export default function Document() {
       <body>
         <Main />
         <NextScript />
+        <script src="https://telegram.org/js/telegram-web-app.js"></script>
       </body>
     </Html>
   );
