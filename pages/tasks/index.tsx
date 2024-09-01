@@ -15,18 +15,22 @@ const Tasks: React.FC<TasksProps> = ({ tasks }) => {
   });
   const router = useRouter();
   useEffect(() => {
+    // @ts-ignore
     if (window.Telegram.WebApp) {
-      window.Telegram.WebApp.MainButton.setText("NEW REREMINDER");
-      window.Telegram.WebApp.MainButton.show();
-      window.Telegram.WebApp.MainButton.enable();
+      // @ts-ignore
+      window.Telegram.WebApp.MainButton.setText("NEW REREMINDER"); // @ts-ignore
+      window.Telegram.WebApp.MainButton.show(); // @ts-ignore
+      window.Telegram.WebApp.MainButton.enable(); // @ts-ignore
       window.Telegram.WebApp.MainButton.onClick(() =>
         router.push("/tasks/new")
       );
       setViewer({
+        // @ts-ignore
         userId: window.Telegram.WebApp.initDataUnsafe.user.id,
       });
     }
     return () => {
+      // @ts-ignore
       window.Telegram.WebApp.MainButton.hide();
     };
   }, []);

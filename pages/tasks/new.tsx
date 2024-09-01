@@ -22,19 +22,23 @@ const NewTask: React.FC = () => {
   });
   const router = useRouter();
   useEffect(() => {
+    // @ts-ignore
     if (window.Telegram.WebApp) {
-      window.Telegram.WebApp.BackButton.onClick(() => router.back());
-      window.Telegram.WebApp.BackButton.show();
-      window.Telegram.WebApp.MainButton.setText("SAVE");
-      window.Telegram.WebApp.MainButton.show();
-      window.Telegram.WebApp.MainButton.enable();
+      // @ts-ignore
+      window.Telegram.WebApp.BackButton.onClick(() => router.back()); // @ts-ignore
+      window.Telegram.WebApp.BackButton.show(); // @ts-ignore
+      window.Telegram.WebApp.MainButton.setText("SAVE"); // @ts-ignore
+      window.Telegram.WebApp.MainButton.show(); // @ts-ignore
+      window.Telegram.WebApp.MainButton.enable(); // @ts-ignore
       window.Telegram.WebApp.MainButton.onClick(() => handleSubmit());
       setViewer({
+        // @ts-ignore
         userId: window.Telegram.WebApp.initDataUnsafe.user.id,
       });
     }
     return () => {
-      window.Telegram.WebApp.BackButton.hide();
+      // @ts-ignore
+      window.Telegram.WebApp.BackButton.hide(); // @ts-ignore
       window.Telegram.WebApp.MainButton.hide();
     };
   }, []);
@@ -56,6 +60,7 @@ const NewTask: React.FC = () => {
       status: "ACTIVE",
     };
     if (task.title == "") {
+      // @ts-ignore
       window.Telegram.WebApp.showAlert("Please enter the task title!");
       return;
     }
@@ -71,6 +76,7 @@ const NewTask: React.FC = () => {
     if (res == 201) {
       router.push("/tasks");
     } else {
+      // @ts-ignore
       window.Telegram.WebApp.showAlert("Error creating task");
     }
   };
