@@ -1,6 +1,7 @@
 import clientPromise from "@/lib/mongodb";
 import { Task, getAllTasks } from "@/models/tasks";
 import moment from "moment";
+import { ObjectId } from "mongodb";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -30,7 +31,7 @@ const Tasks: React.FC<TasksProps> = ({ tasks }) => {
     };
   }, []);
 
-  const navigateToTask = (id?: number) => {
+  const navigateToTask = (id?: ObjectId) => {
     if (id) router.push("/tasks/" + id);
   };
 

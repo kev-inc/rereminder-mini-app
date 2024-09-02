@@ -5,7 +5,7 @@ const DB_NAME = "rereminder";
 const COLLECTION_NAME = "tasks";
 
 export interface Task {
-  _id?: number;
+  _id?: ObjectId;
   title: string;
   description: string;
   chatId: number;
