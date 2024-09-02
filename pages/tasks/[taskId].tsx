@@ -1,35 +1,39 @@
-import clientPromise from "@/lib/mongodb";
-import { Task } from "@/models/tasks";
+import { Task, getOneTask } from "@/models/tasks";
 import moment from "moment";
+import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-const NewTask: React.FC = () => {
-  const dateNow = moment().format("YYYY-MM-DD");
-  const timeNow = moment().format("HH:mm");
+interface TaskProps {
+  task: Task;
+}
 
-  const [showDTPicker, setShowDTPicker] = useState(false);
+const TaskDetail: React.FC<TaskProps> = ({ task }) => {
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    title: task.title,
+    description: task.description,
+    date:
+      task.reminderDate &&
+      moment.unix(task.reminderDate).utcOffset(8).format("YYYY-MM-DD"),
+    time:
+      task.reminderDate &&
+      moment.unix(task.reminderDate).utcOffset(8).format("HH:mm"),
+    interval: task.repeatInterval,
+  });
+  const [showDTPicker, setShowDTPicker] = useState(task.reminderDate != null);
   const [viewer, setViewer] = useState({
     userId: null,
   });
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    date: dateNow,
-    time: timeNow,
-    interval: "once",
-  });
-  const router = useRouter();
   useEffect(() => {
     const { WebApp } = (window as any).Telegram;
     if (WebApp) {
       WebApp?.BackButton.onClick(() => router.replace("/tasks"));
       WebApp?.BackButton.show();
-      WebApp?.MainButton.setText("SAVE");
-      WebApp?.MainButton.show();
-      WebApp?.MainButton.enable();
-      // WebApp?.MainButton.onClick(() => handleSubmit(formData));
+      //   WebApp?.MainButton.setText("SAVE");
+      //   WebApp?.MainButton.show();
+      //   WebApp?.MainButton.enable();
       setViewer({
         userId: WebApp?.initDataUnsafe?.user?.id,
       });
@@ -42,47 +46,22 @@ const NewTask: React.FC = () => {
 
   useEffect(() => {
     const { WebApp } = (window as any).Telegram;
-    const handler = () => handleSubmit(formData);
-    WebApp?.MainButton.onClick(handler);
-    return () => WebApp?.MainButton.offClick(handler);
+    if (isFormModified()) {
+      WebApp?.MainButton.setText("Save changes");
+      WebApp?.MainButton.show();
+      WebApp?.MainButton.enable();
+    } else {
+      WebApp?.MainButton.hide();
+    }
   }, [formData, setFormData]);
 
-  const postNewTask = async (task: Task) => {
-    const resp = await fetch("/api/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(task),
-    });
-    return resp.status;
-  };
-  const handleSubmit = async (data: any) => {
-    const { WebApp } = (window as any).Telegram;
-    const task: Task = {
-      title: data.title,
-      description: data.description,
-      chatId: 0,
-      userId: viewer.userId || 0,
-      status: "ACTIVE",
-    };
-    WebApp?.showAlert(JSON.stringify(data));
-    if (data.title == "") {
-      WebApp?.showAlert("Please enter the task title!");
-      return;
-    }
-    if (showDTPicker) {
-      const reminderDT = moment(
-        `${data.date} ${data.time}`,
-        "YYYY-MM-DD HH:mm"
-      ).utcOffset(8);
-      task.reminderDate = reminderDT.unix();
-      task.repeatInterval = data.interval;
-    }
-    const res = await postNewTask(task);
-    if (res == 201) {
-      router.push("/tasks");
-    } else {
-      WebApp?.showAlert("Error creating task");
-    }
+  const isFormModified = () => {
+    return (
+      formData.title !== task.title ||
+      formData.description !== task.description ||
+      formData.interval !== task.repeatInterval
+      // add date and time checks here
+    );
   };
 
   return (
@@ -107,7 +86,10 @@ const NewTask: React.FC = () => {
             className="block w-full p-2.5 tg-secondary-bg-color"
             value={formData.description}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, description: e.target.value }))
+              setFormData((prev) => ({
+                ...prev,
+                description: e.target.value,
+              }))
             }
           />
         </div>
@@ -169,7 +151,10 @@ const NewTask: React.FC = () => {
               className="block w-full p-2.5 tg-secondary-bg-color"
               value={formData.interval}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, interval: e.target.value }))
+                setFormData((prev) => ({
+                  ...prev,
+                  interval: e.target.value,
+                }))
               }
             >
               <option value="once">Once</option>
@@ -180,17 +165,15 @@ const NewTask: React.FC = () => {
             </select>
           </div>
         )}
-
-        <div>
-          <input
-            type="submit"
-            value="Save"
-            className="bg-blue-500 text-gray-50 p-2 cursor-pointer hover:bg-blue-600 active:bg-blue-700"
-          />
-        </div>
       </div>
     </form>
   );
 };
 
-export default NewTask;
+export default TaskDetail;
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const { taskId } = context.params as any;
+  const task = await getOneTask(taskId);
+  return { props: { task: JSON.parse(JSON.stringify(task)) } };
+};

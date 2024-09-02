@@ -1,4 +1,11 @@
+import clientPromise from "@/lib/mongodb";
+import { ObjectId } from "mongodb";
+
+const DB_NAME = "rereminder";
+const COLLECTION_NAME = "tasks";
+
 export interface Task {
+  _id?: number;
   title: string;
   description: string;
   chatId: number;
@@ -7,6 +14,30 @@ export interface Task {
   repeatInterval?: string;
   status: string;
 }
+
+export const getAllTasks = async () => {
+  try {
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+    const tasks = await db.collection(COLLECTION_NAME).find({}).toArray();
+    return tasks;
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+};
+
+export const getOneTask = async (id: number) => {
+  try {
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+    const task = await db.collection(COLLECTION_NAME).findOne(new ObjectId(id));
+    return task;
+  } catch (e) {
+    console.error(e);
+    return null;
+  }
+};
 
 export const validateTask = (task: Task) => {
   if (task.title == null || task.title == "") {
