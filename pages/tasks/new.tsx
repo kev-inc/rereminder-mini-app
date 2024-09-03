@@ -8,7 +8,7 @@ const NewTask: React.FC = () => {
   const dateNow = moment().format("YYYY-MM-DD");
   const timeNow = moment().format("HH:mm");
 
-  const [showDTPicker, setShowDTPicker] = useState(false);
+  const [showDTPicker, setShowDTPicker] = useState(true);
   const [viewer, setViewer] = useState({
     userId: null,
   });
@@ -87,12 +87,12 @@ const NewTask: React.FC = () => {
 
   return (
     <form className="tg-text-color" onSubmit={(e) => e.preventDefault()}>
-      <div className="flex flex-col gap-y-4 p-2">
+      <div className="flex flex-col gap-y-4 p-2.5">
         <div>
           <label className="block mb-2 text-sm font-medium">Title</label>
           <input
             type="text"
-            className="block w-full p-2.5 tg-secondary-bg-color"
+            className="block w-full p-2.5 tg-secondary-bg-color rounded-lg"
             value={formData.title}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, title: e.target.value }))
@@ -104,7 +104,7 @@ const NewTask: React.FC = () => {
           <label className="block mb-2 text-sm font-medium">Description</label>
           <textarea
             rows={5}
-            className="block w-full p-2.5 tg-secondary-bg-color"
+            className="block w-full p-2.5 tg-secondary-bg-color rounded-lg"
             value={formData.description}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, description: e.target.value }))
@@ -129,28 +129,31 @@ const NewTask: React.FC = () => {
           </div>
           {showDTPicker && (
             <>
-              <input
-                type="date"
-                value={formData.date}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, date: e.target.value }))
-                }
-                className="block w-full p-2.5 tg-secondary-bg-color"
-                suppressHydrationWarning
-              />
-              <div className="flex">
+              <div className="flex tg-secondary-bg-color rounded-lg py-2 mb-2">
+                <input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, date: e.target.value }))
+                  }
+                  className="block flex-1 p-2.5 tg-secondary-bg-color rounded-lg"
+                  suppressHydrationWarning
+                />
+              </div>
+
+              <div className="flex tg-secondary-bg-color rounded-lg py-2 mb-2">
                 <input
                   type="time"
                   value={formData.time}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, time: e.target.value }))
                   }
-                  className="block w-full p-2.5 tg-secondary-bg-color"
+                  className="block flex-1 p-2.5 tg-secondary-bg-color"
                   suppressHydrationWarning
                 />
                 <select
                   name="tz"
-                  className="block w-full p-2.5 tg-secondary-bg-color"
+                  className="block flex-1 p-2.5 tg-secondary-bg-color"
                 >
                   <option>+08:00</option>
                 </select>
@@ -164,20 +167,22 @@ const NewTask: React.FC = () => {
             <label className="block mb-2 text-sm font-medium">
               Rereminder Interval
             </label>
-            <select
-              name="interval"
-              className="block w-full p-2.5 tg-secondary-bg-color"
-              value={formData.interval}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, interval: e.target.value }))
-              }
-            >
-              <option value="once">Once</option>
-              <option value="hourly">Hourly</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
+            <div className="flex tg-secondary-bg-color rounded-lg py-2 mb-2">
+              <select
+                name="interval"
+                className="block w-full p-2.5 tg-secondary-bg-color"
+                value={formData.interval}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, interval: e.target.value }))
+                }
+              >
+                <option value="once">Once</option>
+                <option value="hourly">Hourly</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
           </div>
         )}
 

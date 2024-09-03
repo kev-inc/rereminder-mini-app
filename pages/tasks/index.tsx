@@ -37,7 +37,6 @@ const Tasks: React.FC<TasksProps> = ({ tasks }) => {
 
   return (
     <div className="tg-text-color">
-      <div>Showing tasks for user {viewer.userId}</div>
       {tasks.map((task, index) => (
         <div
           key={index}
@@ -50,7 +49,7 @@ const Tasks: React.FC<TasksProps> = ({ tasks }) => {
               {task.userId}
             </span>
             {task.reminderDate && (
-              <span className="text-xs bg-gray-100 text-gray-500 p-1 rounded">
+              <span className="text-xs bg-gray-100 p-1 rounded tg-button-color">
                 {moment.unix(task.reminderDate).fromNow()}
               </span>
             )}

@@ -64,14 +64,27 @@ const TaskDetail: React.FC<TaskProps> = ({ task }) => {
     );
   };
 
+  const handleDelete = async () => {
+    const { WebApp } = (window as any).Telegram;
+
+    const resp = await fetch("/api/tasks/" + task._id, {
+      method: "DELETE",
+    });
+    if (resp.status == 201) {
+      router.push("/tasks");
+    } else {
+      WebApp?.showAlert("Error deleting task");
+    }
+  };
+
   return (
     <form className="tg-text-color" onSubmit={(e) => e.preventDefault()}>
-      <div className="flex flex-col gap-y-4 p-2">
+      <div className="flex flex-col gap-y-4 p-2.5">
         <div>
           <label className="block mb-2 text-sm font-medium">Title</label>
           <input
             type="text"
-            className="block w-full p-2.5 tg-secondary-bg-color"
+            className="block w-full p-2.5 tg-secondary-bg-color rounded-lg"
             value={formData.title}
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, title: e.target.value }))
@@ -83,7 +96,7 @@ const TaskDetail: React.FC<TaskProps> = ({ task }) => {
           <label className="block mb-2 text-sm font-medium">Description</label>
           <textarea
             rows={5}
-            className="block w-full p-2.5 tg-secondary-bg-color"
+            className="block w-full p-2.5 tg-secondary-bg-color rounded-lg"
             value={formData.description}
             onChange={(e) =>
               setFormData((prev) => ({
@@ -111,28 +124,30 @@ const TaskDetail: React.FC<TaskProps> = ({ task }) => {
           </div>
           {showDTPicker && (
             <>
-              <input
-                type="date"
-                value={formData.date}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, date: e.target.value }))
-                }
-                className="block w-full p-2.5 tg-secondary-bg-color"
-                suppressHydrationWarning
-              />
-              <div className="flex">
+              <div className="flex tg-secondary-bg-color rounded-lg py-2 mb-2">
+                <input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, date: e.target.value }))
+                  }
+                  className="block flex-1 p-2.5 tg-secondary-bg-color rounded-lg"
+                  suppressHydrationWarning
+                />
+              </div>
+              <div className="flex tg-secondary-bg-color rounded-lg py-2 mb-2">
                 <input
                   type="time"
                   value={formData.time}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, time: e.target.value }))
                   }
-                  className="block w-full p-2.5 tg-secondary-bg-color"
+                  className="block flex-1 p-2.5 tg-secondary-bg-color"
                   suppressHydrationWarning
                 />
                 <select
                   name="tz"
-                  className="block w-full p-2.5 tg-secondary-bg-color"
+                  className="block flex-1 p-2.5 tg-secondary-bg-color"
                 >
                   <option>+08:00</option>
                 </select>
@@ -146,25 +161,36 @@ const TaskDetail: React.FC<TaskProps> = ({ task }) => {
             <label className="block mb-2 text-sm font-medium">
               Rereminder Interval
             </label>
-            <select
-              name="interval"
-              className="block w-full p-2.5 tg-secondary-bg-color"
-              value={formData.interval}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  interval: e.target.value,
-                }))
-              }
-            >
-              <option value="once">Once</option>
-              <option value="hourly">Hourly</option>
-              <option value="daily">Daily</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-            </select>
+            <div className="flex tg-secondary-bg-color rounded-lg py-2 mb-2">
+              <select
+                name="interval"
+                className="block w-full p-2.5 tg-secondary-bg-color"
+                value={formData.interval}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    interval: e.target.value,
+                  }))
+                }
+              >
+                <option value="once">Once</option>
+                <option value="hourly">Hourly</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+              </select>
+            </div>
           </div>
         )}
+
+        <div className="flex flex-col">
+          <button
+            className="p-2 tg-secondary-bg-color tg-destructive-text-color rounded-lg active:opacity-70"
+            onClick={handleDelete}
+          >
+            Delete
+          </button>
+        </div>
       </div>
     </form>
   );

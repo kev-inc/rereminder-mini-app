@@ -1,5 +1,5 @@
 import { Task, validateTask } from "@/models/tasks";
-import clientPromise from "../../lib/mongodb";
+import clientPromise from "@/lib/mongodb";
 import { NextApiRequest, NextApiResponse } from "next";
 
 const handleGET = async (req: NextApiRequest, res: NextApiResponse) => {
