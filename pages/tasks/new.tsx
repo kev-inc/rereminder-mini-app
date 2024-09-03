@@ -64,7 +64,6 @@ const NewTask: React.FC = () => {
       userId: viewer.userId || 0,
       status: "ACTIVE",
     };
-    WebApp?.showAlert(JSON.stringify(data));
     if (data.title == "") {
       WebApp?.showAlert("Please enter the task title!");
       return;

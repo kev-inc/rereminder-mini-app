@@ -66,15 +66,28 @@ const TaskDetail: React.FC<TaskProps> = ({ task }) => {
 
   const handleDelete = async () => {
     const { WebApp } = (window as any).Telegram;
-
-    const resp = await fetch("/api/tasks/" + task._id, {
-      method: "DELETE",
-    });
-    if (resp.status == 201) {
-      router.push("/tasks");
-    } else {
-      WebApp?.showAlert("Error deleting task");
-    }
+    WebApp?.showPopup(
+      {
+        title: "Delete task?",
+        message: `Are you sure you want to delete '${formData.title}'?`,
+        buttons: [
+          { id: "delete", type: "destructive", text: "Yes, delete" },
+          { type: "cancel" },
+        ],
+      },
+      async (btn: string) => {
+        if (btn == "delete") {
+          const resp = await fetch("/api/tasks/" + task._id, {
+            method: "DELETE",
+          });
+          if (resp.status == 201) {
+            router.push("/tasks");
+          } else {
+            WebApp?.showAlert("Error deleting task");
+          }
+        }
+      }
+    );
   };
 
   return (
