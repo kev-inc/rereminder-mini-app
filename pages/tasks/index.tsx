@@ -35,8 +35,13 @@ const Tasks: React.FC<TasksProps> = ({ tasks }) => {
     if (id) router.push("/tasks/" + id);
   };
 
+  const testNotification = async () => {
+    const resp = await fetch("/api/telegram").then((res) => res.json());
+    alert(JSON.stringify(resp));
+  };
+
   return (
-    <div className="tg-text-color">
+    <div className="tg-text-color tg-bg-color">
       <div className="tg-section-bg-color tg-section-header-text-color text-sm uppercase font-medium p-1">
         My Reminders
       </div>
@@ -70,6 +75,13 @@ const Tasks: React.FC<TasksProps> = ({ tasks }) => {
           </div>
         );
       })}
+
+      <div
+        className="p-4 cursor-pointer text-center text-xs opacity-30"
+        onClick={testNotification}
+      >
+        Test Notification
+      </div>
     </div>
   );
 };

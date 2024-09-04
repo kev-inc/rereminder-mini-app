@@ -1,4 +1,5 @@
 import clientPromise from "@/lib/mongodb";
+import moment from "moment";
 import { ObjectId } from "mongodb";
 
 const DB_NAME = "rereminder";
@@ -40,6 +41,22 @@ export const getOneTask = async (id: number) => {
   } catch (e) {
     console.error(e);
     return null;
+  }
+};
+
+export const getTasksPastReminderDate = async () => {
+  const nowUnix = moment().unix();
+  try {
+    const client = await clientPromise;
+    const db = client.db(DB_NAME);
+    const tasks = await db
+      .collection(COLLECTION_NAME)
+      .find({ reminderDate: { $lt: nowUnix } })
+      .toArray();
+    return tasks;
+  } catch (e) {
+    console.error(e);
+    return [];
   }
 };
 

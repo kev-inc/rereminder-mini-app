@@ -85,7 +85,7 @@ const NewTask: React.FC = () => {
   };
 
   return (
-    <form className="tg-text-color" onSubmit={(e) => e.preventDefault()}>
+    <form className="tg-text-color tg-bg-color" onSubmit={(e) => e.preventDefault()}>
       <div className="flex flex-col gap-y-4 p-2.5">
         <div>
           <label className="block mb-2 text-sm font-medium">Title</label>
