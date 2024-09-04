@@ -1,4 +1,5 @@
 import { Task, getOneTask } from "@/models/tasks";
+import { parseDT, parseMmt, parseNow, parseUnix } from "@/utils/utils";
 import moment from "moment";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
@@ -10,15 +11,16 @@ interface TaskProps {
 
 const TaskDetail: React.FC<TaskProps> = ({ task }) => {
   const router = useRouter();
+  const { date: dateNow, time: timeNow } = parseNow();
+  const { date: reminderDate, time: reminderTime } = parseUnix(
+    task.reminderDate
+  );
+
   const [formData, setFormData] = useState({
     title: task.title,
     description: task.description,
-    date:
-      task.reminderDate &&
-      moment.unix(task.reminderDate).utcOffset(8).format("YYYY-MM-DD"),
-    time:
-      task.reminderDate &&
-      moment.unix(task.reminderDate).utcOffset(8).format("HH:mm"),
+    date: reminderDate || dateNow,
+    time: reminderTime || timeNow,
     interval: task.repeatInterval,
   });
   const [showDTPicker, setShowDTPicker] = useState(task.reminderDate != null);
@@ -31,9 +33,9 @@ const TaskDetail: React.FC<TaskProps> = ({ task }) => {
     if (WebApp) {
       WebApp?.BackButton.onClick(() => router.replace("/tasks"));
       WebApp?.BackButton.show();
-      //   WebApp?.MainButton.setText("SAVE");
-      //   WebApp?.MainButton.show();
-      //   WebApp?.MainButton.enable();
+      WebApp?.MainButton.setText("SAVE");
+      WebApp?.MainButton.show();
+      WebApp?.MainButton.enable();
       setViewer({
         userId: WebApp?.initDataUnsafe?.user?.id,
       });
@@ -46,22 +48,45 @@ const TaskDetail: React.FC<TaskProps> = ({ task }) => {
 
   useEffect(() => {
     const { WebApp } = (window as any).Telegram;
-    if (isFormModified()) {
-      WebApp?.MainButton.setText("Save changes");
-      WebApp?.MainButton.show();
-      WebApp?.MainButton.enable();
-    } else {
-      WebApp?.MainButton.hide();
-    }
-  }, [formData, setFormData]);
+    const handler = () => handleEdit(formData);
+    WebApp?.MainButton.onClick(handler);
+    return () => WebApp?.MainButton.offClick(handler);
+  }, [formData, setFormData, showDTPicker, setShowDTPicker, viewer, setViewer]);
 
-  const isFormModified = () => {
-    return (
-      formData.title !== task.title ||
-      formData.description !== task.description ||
-      formData.interval !== task.repeatInterval
-      // add date and time checks here
-    );
+
+  const putNewTask = async (newTask: Task) => {
+    const resp = await fetch("/api/tasks/" + task._id, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newTask),
+    });
+    return resp.status;
+  };
+
+  const handleEdit = async (data: any) => {
+    const { WebApp } = (window as any).Telegram;
+    const task: Task = {
+      title: data.title,
+      description: data.description,
+      chatId: 0,
+      userId: viewer.userId || 0,
+      status: "ACTIVE",
+    };
+    if (data.title == "") {
+      WebApp?.showAlert("Please enter the task title!");
+      return;
+    }
+    if (showDTPicker) {
+      const { unix: reminderUnix } = parseDT(data.date, data.time);
+      task.reminderDate = reminderUnix;
+      task.repeatInterval = data.interval;
+    }
+    const res = await putNewTask(task);
+    if (res == 201) {
+      router.push("/tasks");
+    } else {
+      WebApp?.showAlert("Error updating task");
+    }
   };
 
   const handleDelete = async () => {
@@ -88,6 +113,38 @@ const TaskDetail: React.FC<TaskProps> = ({ task }) => {
         }
       }
     );
+  };
+
+  const snoozeTask = (snoozeBy: string) => {
+    const now = parseNow();
+    if (snoozeBy == "tonight") {
+      const tonight = now.mmt.hour(22).minute(0).second(0).millisecond(0);
+      const { date, time } = parseMmt(tonight);
+      setFormData((prev) => ({ ...prev, date, time }));
+      return;
+    } else if (snoozeBy == "morning") {
+      const morning = now.mmt
+        .add(1, "days")
+        .hour(8)
+        .minute(0)
+        .second(0)
+        .millisecond(0);
+      const { date, time } = parseMmt(morning);
+      setFormData((prev) => ({ ...prev, date, time }));
+      return;
+    }
+
+    const { mmt: reminderMmt } = parseDT(formData.date, formData.time);
+
+    if (snoozeBy == "day") {
+      reminderMmt.add(1, "days");
+    } else if (snoozeBy == "week") {
+      reminderMmt.add(1, "weeks");
+    } else if (snoozeBy == "month") {
+      reminderMmt.add(1, "months");
+    }
+    const { date, time } = parseMmt(reminderMmt);
+    setFormData((prev) => ({ ...prev, date, time }));
   };
 
   return (
@@ -129,7 +186,7 @@ const TaskDetail: React.FC<TaskProps> = ({ task }) => {
               <input
                 type="checkbox"
                 checked={showDTPicker}
-                onClick={() => setShowDTPicker((prev) => !prev)}
+                onChange={() => setShowDTPicker((prev) => !prev)}
                 className="sr-only peer"
               />
               <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -140,7 +197,7 @@ const TaskDetail: React.FC<TaskProps> = ({ task }) => {
               <div className="flex tg-secondary-bg-color rounded-lg py-2 mb-2">
                 <input
                   type="date"
-                  value={formData.date}
+                  value={formData.date ? formData.date : ""}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, date: e.target.value }))
                   }
@@ -151,7 +208,7 @@ const TaskDetail: React.FC<TaskProps> = ({ task }) => {
               <div className="flex tg-secondary-bg-color rounded-lg py-2 mb-2">
                 <input
                   type="time"
-                  value={formData.time}
+                  value={formData.time ? formData.time : ""}
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, time: e.target.value }))
                   }
@@ -172,7 +229,7 @@ const TaskDetail: React.FC<TaskProps> = ({ task }) => {
         {showDTPicker && (
           <div>
             <label className="block mb-2 text-sm font-medium">
-              Rereminder Interval
+              Reminder Interval
             </label>
             <div className="flex tg-secondary-bg-color rounded-lg py-2 mb-2">
               <select
@@ -192,6 +249,46 @@ const TaskDetail: React.FC<TaskProps> = ({ task }) => {
                 <option value="weekly">Weekly</option>
                 <option value="monthly">Monthly</option>
               </select>
+            </div>
+          </div>
+        )}
+
+        {showDTPicker && (
+          <div>
+            <label className="block mb-2 text-sm font-medium">
+              Snooze Reminder
+            </label>
+            <div className="flex tg-secondary-bg-color text-xs justify-around rounded-lg py-3 mb-2">
+              <div
+                className="active:opacity-70 cursor-pointer"
+                onClick={() => snoozeTask("tonight")}
+              >
+                10pm
+              </div>
+              <div
+                className="active:opacity-70 cursor-pointer"
+                onClick={() => snoozeTask("morning")}
+              >
+                Next 8am
+              </div>
+              <div
+                className="active:opacity-70 cursor-pointer"
+                onClick={() => snoozeTask("day")}
+              >
+                1 day
+              </div>
+              <div
+                className="active:opacity-70 cursor-pointer"
+                onClick={() => snoozeTask("week")}
+              >
+                1 week
+              </div>
+              <div
+                className="active:opacity-70 cursor-pointer"
+                onClick={() => snoozeTask("month")}
+              >
+                1 month
+              </div>
             </div>
           </div>
         )}

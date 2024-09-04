@@ -19,7 +19,11 @@ export const getAllTasks = async () => {
   try {
     const client = await clientPromise;
     const db = client.db(DB_NAME);
-    const tasks = await db.collection(COLLECTION_NAME).find({}).toArray();
+    const tasks = await db
+      .collection(COLLECTION_NAME)
+      .find({})
+      .sort({ reminderDate: 1 })
+      .toArray();
     return tasks;
   } catch (e) {
     console.error(e);

@@ -1,12 +1,11 @@
 import clientPromise from "@/lib/mongodb";
 import { Task } from "@/models/tasks";
-import moment from "moment";
+import { parseDT, parseNow } from "@/utils/utils";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 const NewTask: React.FC = () => {
-  const dateNow = moment().format("YYYY-MM-DD");
-  const timeNow = moment().format("HH:mm");
+  const { date: dateNow, time: timeNow } = parseNow();
 
   const [showDTPicker, setShowDTPicker] = useState(true);
   const [viewer, setViewer] = useState({
@@ -45,7 +44,7 @@ const NewTask: React.FC = () => {
     const handler = () => handleSubmit(formData);
     WebApp?.MainButton.onClick(handler);
     return () => WebApp?.MainButton.offClick(handler);
-  }, [formData, setFormData]);
+  }, [formData, setFormData, showDTPicker, setShowDTPicker, viewer, setViewer]);
 
   const postNewTask = async (task: Task) => {
     const resp = await fetch("/api/tasks", {
@@ -69,11 +68,12 @@ const NewTask: React.FC = () => {
       return;
     }
     if (showDTPicker) {
-      const reminderDT = moment(
-        `${data.date} ${data.time}`,
-        "YYYY-MM-DD HH:mm"
-      ).utcOffset(8);
-      task.reminderDate = reminderDT.unix();
+      const { unix: reminderUnix } = parseDT(data.date, data.time);
+      //  moment(
+      //   `${data.date} ${data.time}`,
+      //   "YYYY-MM-DD HH:mm"
+      // ).utcOffset(8);
+      task.reminderDate = reminderUnix;
       task.repeatInterval = data.interval;
     }
     const res = await postNewTask(task);
@@ -120,7 +120,7 @@ const NewTask: React.FC = () => {
               <input
                 type="checkbox"
                 checked={showDTPicker}
-                onClick={() => setShowDTPicker((prev) => !prev)}
+                onChange={() => setShowDTPicker((prev) => !prev)}
                 className="sr-only peer"
               />
               <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -164,7 +164,7 @@ const NewTask: React.FC = () => {
         {showDTPicker && (
           <div>
             <label className="block mb-2 text-sm font-medium">
-              Rereminder Interval
+              Reminder Interval
             </label>
             <div className="flex tg-secondary-bg-color rounded-lg py-2 mb-2">
               <select

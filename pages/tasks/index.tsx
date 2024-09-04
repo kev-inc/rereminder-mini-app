@@ -37,25 +37,39 @@ const Tasks: React.FC<TasksProps> = ({ tasks }) => {
 
   return (
     <div className="tg-text-color">
-      {tasks.map((task, index) => (
-        <div
-          key={index}
-          className="px-4 py-2 border-b tg-section-separator-color cursor-pointer"
-          onClick={() => navigateToTask(task._id)}
-        >
-          <div>{task.title}</div>
-          <div className="flex gap-x-2">
-            <span className="text-xs bg-gray-100 text-gray-500 p-1 rounded">
-              {task.userId}
-            </span>
-            {task.reminderDate && (
-              <span className="text-xs bg-gray-100 p-1 rounded tg-button-color">
-                {moment.unix(task.reminderDate).fromNow()}
-              </span>
-            )}
+      <div className="tg-section-bg-color tg-section-header-text-color text-sm uppercase font-medium p-1">
+        My Reminders
+      </div>
+      {tasks.map((task, index) => {
+        const isReminderActive =
+          task.reminderDate && task.reminderDate < moment().unix();
+        return (
+          <div
+            key={index}
+            className={`pr-4 py-2  border-b tg-section-separator-color cursor-pointer ${
+              isReminderActive ? "border-l-4 pl-3" : "pl-4"
+            } active:opacity-70`}
+            onClick={() => navigateToTask(task._id)}
+          >
+            <div className={`${isReminderActive && "font-bold"} mb-2`}>
+              {task.title}
+            </div>
+            <div className="flex gap-x-2">
+              {task.reminderDate &&
+                (isReminderActive ? (
+                  <span className="text-xs p-1 rounded tg-button-color">
+                    {moment.unix(task.reminderDate).fromNow()}
+                  </span>
+                ) : (
+                  <span className="text-xs p-1 rounded tg-section-bg-color">
+                    {moment.unix(task.reminderDate).fromNow()}
+                  </span>
+                ))}
+              <span className="text-xs p-1 rounded">{task.userId}</span>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

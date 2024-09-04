@@ -7,6 +7,26 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
   const { taskId } = req.query;
   const id: string = String(taskId);
 
+  const handlePUT = async () => {
+    if (req.headers["content-type"] === "application/json") {
+      try {
+        const task: Task = req.body;
+        validateTask(task);
+        const client = await clientPromise;
+        const db = client.db("rereminder");
+        const edited = await db
+          .collection("tasks")
+          .replaceOne({ _id: new ObjectId(id) }, task);
+        res.status(201).json(edited);
+      } catch (e: any) {
+        console.error(e);
+        res.status(404).send(e.message);
+      }
+    } else {
+      res.status(400).send("Invalid content type");
+    }
+  };
+
   const handleDELETE = async () => {
     try {
       const client = await clientPromise;
@@ -21,8 +41,8 @@ export default async (req: NextApiRequest, res: NextApiResponse) => {
     }
   };
   switch (req.method) {
-    case "GET":
-      return res.json({ hi: taskId });
+    case "PUT":
+      return handlePUT();
     case "DELETE":
       return handleDELETE();
     default:
